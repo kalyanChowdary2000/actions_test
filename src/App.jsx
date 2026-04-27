@@ -26,7 +26,7 @@ export default function App() {
 
   return (
     <main className="app">
-      <h1>Random Bubble Field - v2</h1>
+      <h1>Random Bubble Field - v3</h1>
       <p>Refresh the page to generate a new bubble layout.</p>
       <button type="button" onClick={() => window.location.reload()}>
         Refresh bubbles
