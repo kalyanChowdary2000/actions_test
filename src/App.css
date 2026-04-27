@@ -1,0 +1,65 @@
+.app {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0d1326, #120f22);
+  color: #f3f5ff;
+  text-align: center;
+  padding: 2rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
+p {
+  margin: 0.6rem 0 1.2rem;
+  color: #cfd5f8;
+}
+
+button {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f3f5ff;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bubble-area {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: inset -8px -8px 24px rgba(0, 0, 0, 0.25), 0 0 12px rgba(122, 175, 255, 0.35);
+  animation-name: float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-18px);
+  }
+  100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+}
