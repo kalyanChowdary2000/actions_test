@@ -17,6 +17,7 @@ jobs:
       EC2_REPO_PATH: ${{ secrets.EC2_REPO_PATH || secrets.EC2_DEPLOY_PATH }}
       PM2_PROCESS_NAME: ${{ secrets.PM2_PROCESS_NAME || 'actions_test' }}
       DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH || 'main' }}
+      REPO_SLUG: ${{ github.repository }}
 
     steps:
       - name: Setup SSH key
@@ -34,9 +35,18 @@ jobs:
           ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" \
             "sudo -i bash -lc '
               set -e
+              mkdir -p \"$EC2_REPO_PATH\"
               cd \"$EC2_REPO_PATH\"
+
+              if [ ! -d .git ]; then
+                rm -rf ./*
+                git init
+                git remote add origin \"https://github.com/$REPO_SLUG.git\"
+              fi
+
+              git remote set-url origin \"https://github.com/$REPO_SLUG.git\"
               git fetch origin \"$DEPLOY_BRANCH\"
-              git checkout \"$DEPLOY_BRANCH\"
+              git checkout -B \"$DEPLOY_BRANCH\" \"origin/$DEPLOY_BRANCH\"
               git pull --ff-only origin \"$DEPLOY_BRANCH\"
               npm i
               npm run build
