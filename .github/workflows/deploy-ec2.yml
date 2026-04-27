@@ -40,5 +40,9 @@ jobs:
               git pull --ff-only origin \"$DEPLOY_BRANCH\"
               npm i
               npm run build
-              pm2 restart \"$PM2_PROCESS_NAME\"
+              echo \"Deployed commit: \$(git rev-parse --short HEAD)\"
+              pm2 restart \"$PM2_PROCESS_NAME\" --update-env || pm2 start npm --name \"$PM2_PROCESS_NAME\" -- run dev -- --host 0.0.0.0 --port 80
+              pm2 save
+              pm2 ls
+              curl -I http://127.0.0.1:80 | head -n 1
             '"
