@@ -1,6 +1,6 @@
 # actions_test
 
-Sample React app with a GitHub Actions workflow to deploy `dist/` to an AWS EC2 server.
+Sample React app with a GitHub Actions workflow to SSH into EC2 and deploy in place.
 
 ## EC2 deploy workflow
 
@@ -16,17 +16,22 @@ Add these in your GitHub repository settings:
 
 - **Secret**: `EC2_SSH_PRIVATE_KEY`
   - Private key content used to SSH into your EC2 instance.
-- **Variable**: `EC2_HOST`
+- **Secret**: `EC2_HOST`
   - Public DNS or public IP of EC2 (example: `ec2-xx-xx-xx-xx.compute-1.amazonaws.com`)
-- **Variable**: `EC2_USER`
+- **Secret**: `EC2_USER`
   - SSH user (usually `ubuntu` for Ubuntu AMI, `ec2-user` for Amazon Linux)
-- **Variable**: `EC2_DEPLOY_PATH`
-  - Target path on EC2 where static files are copied (example: `/var/www/actions_test`)
-- **Variable** (optional): `EC2_PORT`
+- **Secret**: `EC2_REPO_PATH`
+  - Absolute path of the app repo on EC2 (example: `/root/test/actions_test`)
+- **Secret**: `PM2_PROCESS_NAME`
+  - PM2 process name or id to restart after build (example: `actions_test`)
+- **Secret** (optional): `EC2_PORT`
   - SSH port (defaults to `22`)
+- **Secret** (optional): `DEPLOY_BRANCH`
+  - Git branch to deploy (defaults to `main`)
+
+This workflow currently uses GitHub Environment name `production`. If your environment has a different name, update `environment:` in `.github/workflows/deploy-ec2.yml`.
 
 ### Notes
 
 - Ensure the EC2 security group allows inbound SSH from GitHub Actions runners (or your accepted CIDR).
-- Ensure the EC2 user has permission to write into `EC2_DEPLOY_PATH`.
-- This workflow uploads built static assets only. Serve that directory with Nginx/Apache/Caddy.
+- The workflow SSHes as `EC2_USER` (for example `ubuntu`), runs `sudo -i`, then executes: `git pull`, `npm i`, `npm run build`, and `pm2 restart`.

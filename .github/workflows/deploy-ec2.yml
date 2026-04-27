@@ -9,23 +9,16 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_PORT: ${{ secrets.EC2_PORT || '22' }}
+      EC2_REPO_PATH: ${{ secrets.EC2_REPO_PATH }}
+      PM2_PROCESS_NAME: ${{ secrets.PM2_PROCESS_NAME }}
+      DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH || 'main' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build app
-        run: npm run build
-
       - name: Setup SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -34,14 +27,18 @@ jobs:
       - name: Add EC2 host key
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ vars.EC2_PORT || 22 }}" -H "${{ vars.EC2_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
-      - name: Ensure deploy path exists
+      - name: Deploy on EC2 as root
         run: |
-          ssh -p "${{ vars.EC2_PORT || 22 }}" "${{ vars.EC2_USER }}@${{ vars.EC2_HOST }}" \
-            "mkdir -p '${{ vars.EC2_DEPLOY_PATH }}'"
-
-      - name: Upload built assets
-        run: |
-          scp -P "${{ vars.EC2_PORT || 22 }}" -r dist/* \
-            "${{ vars.EC2_USER }}@${{ vars.EC2_HOST }}:${{ vars.EC2_DEPLOY_PATH }}/"
+          ssh -p "$EC2_PORT" "$EC2_USER@$EC2_HOST" \
+            "sudo -i bash -lc '
+              set -e
+              cd \"$EC2_REPO_PATH\"
+              git fetch origin \"$DEPLOY_BRANCH\"
+              git checkout \"$DEPLOY_BRANCH\"
+              git pull --ff-only origin \"$DEPLOY_BRANCH\"
+              npm i
+              npm run build
+              pm2 restart \"$PM2_PROCESS_NAME\"
+            '"
